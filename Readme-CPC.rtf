@@ -1,0 +1,134 @@
+Input parameters to use the software efit2d-pyopencl 
+(version 0.1) 
+
+M. Molero, Ursula Iturraran-Viveros, S. Aparicio  and M.G. Hernández, 2013
+ miguel.molero@csic.es, ursula @ciencias.unam.mx 
+
+
+In order to run the present code you need the following open-source software: Python (we use version 2.7.3), NumPy, Matplotlib, Scipy, PyOpenCL (OpenCL Library), PIL, glumpy. 
+
+To run the code you just have to type: python main.py
+
+More details in https://code.google.com/p/efit2d-pyopencl/ 
+ 
+The following parameters are in the main.py file and are used to simulate the three-layer viscoelastic/elastic medium in Fig. 2. These first instructions corresponds to the options to plot the simulation in real time (and save snapshots), to choose the device and also the type of memory to be used.
+
+Plotting	  = False
+EnableVideo = False        # only works when plotting
+VISCO       = False
+DEVICE      = "GPU_Global" # CPU, GPU_Global, GPU_Local
+
+Next parameters correspond to the workgroup size (only works in case the option “GPU_Local” is selected in the previous instruction). We set the simulation time and the cutoff frequency (in this case is in Hz):
+Local_Size	 = (16,16)
+Time		      = 75e-6
+frequency       = 500e3
+
+The spatial scale refers to the scale setting of the scenario dimensions given by default in millimeters but this can be modified in case we want a low frequency simulation so that we can change the scale to meters:
+
+#define scenario dimension limits
+SpatialScale = 1e-3 # 1->m or 1e-3->mm 
+
+The next parameter corresponds to the definition of the scenario, defining: width, height, the ratio between pixel to mm (or m), and the label to be used in order to assign the material properties with the scenario image dimensions 
+.   
+image=NewImage(Width=100,Height=100,Pixel_mm=10,label=0)	
+
+We have a three-layer medium and the sizes of the layers are set in the next instruction:
+#create layer
+
+image.createLayer(centerW = 50, centerH = 50,  Width=100, Height=50, label=60)
+
+We set the absorbing layers and we can enable/disable the air boundary. If we disable the air boundary, then absorbing conditions will be used.  
+
+#setup absorbing conditions
+
+	image.createABS(Tap = 10)
+	image.AirBoundary = False
+
+Setting the materials properties for each layer (since we have two identical viscoelastic layers and one elastic we consider two different media): The first medium corresponds to the viscoelastic medium. We have the density, the velocities for the longitudinal and the transversal waves (VL and VT), Lamé parameters (lam and mu), the viscoelastic constants (eta_v and eta_s)
+
+name  = 'medium1';
+rho  =  2000; VL	= 1800; VT = 1040
+lam  = rho*( VL**2 - 2*(VT**2) ); mu= rho*( VT**2); 
+eta_v =  6.8358     # (Pa s) bulk viscosity
+eta_s =  13.7672    # (Pa s) shear viscosity
+
+material1=Material(name=name,rho=rho,c11=lam+2*mu,c12=lam,c22=lam+2*mu,c44=mu,eta_v= eta_v, eta_s=eta_s,label=0)
+
+The second medium corresponds to the elastic medium. We have the density, the velocities for the longitudinal and the transversal waves (VL and VT), the viscoelastic constants (eta_v and eta_s) in this case they are very small (in order to avoid divisions by zero we cannot set them to zero so we set them to a very small number):
+
+materials.append(material1)
+name  = 'medium2';
+rho	  =  2600; VL	= 3000; VT = 1730
+lam	  = rho*( VL**2 - 2*(VT**2) ); mu= rho*( VT**2); 
+eta_v = 1e-10   # (Pa s) bulk viscosity
+eta_s = 1e-10   # (Pa s) shear viscosity
+
+material2=Material(name=name,rho=rho,c11=lam+2*mu,c12=lam,
+c22=lam+2*mu,c44=mu,eta_v= eta_v, eta_s=eta_s,label=60)
+materials.append(material2)
+
+The source is set to transmission mode; we set the position of the transducer and define the type of source (in this case we can chose between a Raised Cosine function of a Ricker wavelet): 
+source= Source(TipoLaunch = 'Transmission') 
+
+transducer=Transducer(Size=0.1,Offset=0,BorderOffset=0,
+                      Location=0,name='emisor')
+
+# name    = "RaisedCosinePulse" or  "RickerPulse"
+signal = Signal(Amplitude=1000, Frequency=frequency, name="RaisedCosinePulse")
+
+
+The simulation setup is done using the following parameters and class methods.
+
+simModel=SimulationModel(TimeScale=0.5,MaxFreq=4.0*frequency, PointCycle=10, SimTime=Time, SpatialScale=SpatialScale)
+	
+simModel.jobParameters(materials)
+simModel.createNumericalModel(image)
+simModel.initReceivers()
+signal.saveSignal(simModel.t)
+simModel.Device = DEVICE
+
+
+The class instance variable FD, is now the responsible to run the simulation using the above defined objects.  
+
+if VISCO:
+FD = EFIT2D(image, materials, source, transducer, signal,    simModel,"VISCOELASTIC", Local_Size)
+	
+else:
+FD = EFIT2D(image, materials, source, transducer, signal, simModel,"ELASTIC", Local_Size)
+			
+	
+To define the receiver’s line, we use the following:
+
+#setup receiver line (100 receivers)
+y = np.linspace(1,100,100)
+x = np.zeros((np.size(y)))
+
+FD.ReceiverVectorSetup(x,y)
+Two possible output files can be generated by the program, as follows:
+
+if VISCO:
+	FILE = "test_visco_" + DEVICE  # FILE name, save in .mat format
+else:
+	FILE = "test_elastic_" + DEVICE  # FILE name, save in .mat format
+
+
+For example, “test_visco_GPU_Local.mat” is an output file providing the received signal by the receiver transducer when the code has been run using the GPU device, the viscoelastic option and the local memory. 
+
+This file can be opened using Matlab as follows:
+
+>> load test_visco_GPU_Local.mat
+>> plot(receiver)
+
+Another file can be generated by the code, corresponding to the receiver’s line defined above, named as, for example “test_visco_GPU_Local_receivers.mat”.  This file can also be opened  in Matlab as:
+
+>> ind = 0;
+   for i=1:100,
+	plot(receiversX(:,i)./max((receiversX(:,i)))+ind); hold on;
+	ind = ind+0.5;
+   end
+>> 
+
+
+
+
+
