@@ -5,8 +5,6 @@ M. Molero-Armenta, Ursula Iturraran-Viveros, S. Aparicio, M.G. Hernández
 Computer Physics Communications Volume 185, Issue 10, October 2014, Pages 2683–2696
 doi: http://dx.doi.org/10.1016/j.cpc.2014.05.016
 
-[link](http://www.sciencedirect.com/science/article/pii/S0010465514001702)
-
 ___
 
 Abstract:
