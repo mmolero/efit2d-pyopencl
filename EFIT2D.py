@@ -7,8 +7,6 @@
 Class EFIT2D
 
 
-
-
 Manuscript Title: Optimized OpenCL implementation of the Elastodynamic Finite Integration Technique for viscoelastic media
 
 Authors: M Molero, U Iturraran-Viveros, S Aparicio, M.G. Hernández 
