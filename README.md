@@ -1,4 +1,4 @@
-###efit2d-pyopencl
+### efit2d-pyopencl
 
 **Optimized OpenCL implementation of the Elastodynamic Finite Integration Technique for viscoelastic media**
 M. Molero-Armenta, Ursula Iturraran-Viveros, S. Aparicio, M.G. Hernández

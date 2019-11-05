@@ -34,11 +34,9 @@ import		  numpy				  as      np
 from		  math				  import  sin, cos, sqrt, pi, exp
 import		  random
 import		  time
-from		  scipy.misc		  import  imresize
-from		  scipy.misc.pilutil  import  imrotate
-from		  scipy.weave		  import  inline
 from		  scipy				  import  signal
 from		  scipy.fftpack		  import  fftshift
+from skimage.transform import rotate
 
 try:
 	from	Image import		Image  
@@ -48,6 +46,15 @@ except:
 from		  matplotlib		  import  cm
 import		  matplotlib.pyplot	  as      plt
 
+
+def imresize(arr, size, **kwargs):
+    from PIL import Image
+    size_list = [int(arr.shape[0] * size), int(arr.shape[1] * size)]
+    return np.array(Image.fromarray(arr).resize(size_list))
+
+
+def imrotate(arr, angle, **kwargs):
+    return rotate(arr, angle=angle)
 
 
 def RaisedCosinePulse(t, Freq, Amplitude):
@@ -501,7 +508,7 @@ class Inspection:
 		self.YL +=	 (np.around(transducer.Offset * image.Pixel_mm * NRI / float(N_pml)))
 
 		self.IR		 = np.zeros((Ntheta,Ntheta),dtype=np.float32)
-		B			 = range(0,Ntheta)
+		B			 = list(range(0,Ntheta))
 		self.IR[:,0] = np.int32(B[:])
 
 		for i in range(1,Ntheta):
@@ -546,7 +553,7 @@ class Inspection:
 		M		  = np.size(x)
 		temp      = np.zeros((M,),dtype=np.float32)
 		for	 mm	in range(0,M):
-			temp[mm] = T[(x[mm]),(y[mm])]
+			temp[mm] = T[(int(x[mm])),(int(y[mm]))]
 		
 		return temp	
 		
@@ -638,7 +645,7 @@ class SimulationModel:
 		self.dt = self.TimeScale * np.float32( 0.7071 * self.dx / (	 np.max([V]) ) )
 
 			
-		self.Ntiempo = round(self.SimTime/self.dt)
+		self.Ntiempo = int(round(self.SimTime/self.dt))
 		self.t	= self.dt*np.arange(0,self.Ntiempo)
 	
 	
@@ -657,7 +664,7 @@ class SimulationModel:
 		self.Im		      =	 imresize(image.Itemp, self.Rgrid, interp='nearest')
 		self.MRI,self.NRI =	 np.shape(self.Im)
 	
-		print "dt: " + str(self.dt) + " dx: "  + str(self.dx) + " Grid: " +  str(self.MRI) + " x " + str(self.NRI)
+		print("dt: " + str(self.dt) + " dx: "  + str(self.dx) + " Grid: " +  str(self.MRI) + " x " + str(self.NRI))
 	
 		
 	def initReceivers(self):
