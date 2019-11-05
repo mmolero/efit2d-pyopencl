@@ -131,11 +131,11 @@ class EFIT2D:
 				for device in platform.get_devices():
 					if cl.device_type.to_string(device.type)== DEVICE:
 						my_device =				 device
-						print my_device.name, "	 ", cl.device_type.to_string(my_device.type)
+						print(my_device.name, "	 ", cl.device_type.to_string(my_device.type))
 
 		except:
 			my_device = cl.get_platforms()[0].get_devices()
-			print my_device.name, "	 ", cl.device_type.to_string(my_device.type)
+			print(my_device.name, "	 ", cl.device_type.to_string(my_device.type))
 
 		self.ctx    = cl.Context([my_device])
 		self.queue  = cl.CommandQueue(self.ctx)

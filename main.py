@@ -173,10 +173,10 @@ if __name__ == '__main__':
 	#Define Main EFIT2D Object
 	if VISCO:
 		FD = EFIT2D(image, materials, source, transducer, signal, simModel,"VISCOELASTIC", Local_Size)
-		print "Visco-EFIT2D"
+		print("Visco-EFIT2D")
 	else:
 		FD = EFIT2D(image, materials, source, transducer, signal, simModel,"ELASTIC", Local_Size)
-		print "Elastic-EFIT2D"
+		print("Elastic-EFIT2D")
 	
 	#setup receiver line (100 receivers)
 	y = np.linspace(1,100,100)
@@ -214,7 +214,7 @@ if __name__ == '__main__':
 				FD.n+=1
 
 				if FD.n % 500==0:
-					print str(FD.n)	 + " Total " + str(TimeIter)
+					print(str(FD.n)	 + " Total " + str(TimeIter))
 
 				if (FD.n % 500==0):
 				
@@ -231,7 +231,7 @@ if __name__ == '__main__':
 			else:
 				global start
 				stopT = time.time()-start
-				print "Total Computation Time: ", stopT
+				print("Total Computation Time: ", stopT)
 				
 				start = time.time()
 				#Retrieve the receiver signals from the computing device to the host
@@ -260,16 +260,16 @@ if __name__ == '__main__':
 			FD.Run()
 			FD.n+=1
 			if FD.n % 500 == 0:
-				print FD.n, " of total iterations: ", TimeIter
+				print(FD.n, " of total iterations: ", TimeIter)
 		
 
 		stopT = time.time()-start
-		print "Total Computation Time: ", stopT
+		print("Total Computation Time: ", stopT)
 
 		start = time.time()
 
 		#Retrieve the receiver signals from the computing device to the host
-		print "recovery"
+		print("recovery")
 		FD.saveOutput() #FD.receivers_signals
 
 		# Save simulation data: receivers, dt, dr, dz
